@@ -30,4 +30,30 @@ interface Launch {
   mission: string;
 }
 
-const launches = newMap<number, Launch>();
+const launches = new Map<number, Launch>();
+
+async function downloadLaunchData() {
+  log.info("Downloading...");
+  const res = await fetch("https://api.spacexdata.com/v3/launches", {
+    method: "GET",
+  });
+
+  //check
+  if (!res.ok) {
+    log.warning("Problem in downing");
+    throw new Error("failed");
+  }
+
+  const launchData = await res.json();
+  for (const launch of launchData) {
+    const flightData = {
+      flightNumber: launch["flight_number"],
+      mission: launch["mission_name"],
+    };
+
+    launches.set(flightData.flightNumber, flightData);
+    log.info(JSON.stringify(flightData));
+  }
+}
+
+await downloadLaunchData();
